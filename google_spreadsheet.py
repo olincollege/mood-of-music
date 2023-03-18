@@ -69,6 +69,11 @@ def googlesheet():
                 shelf["2021"].append(play[2])
                 shelf["2022"].append(play[3])
 
+        # Get rid of empty response for specific year
+        for year, link in shelf.items():
+            link = [full for full in link if full != ""]
+            shelf[year] = link
+
         return shelf
 
     except HttpError as err:

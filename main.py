@@ -70,12 +70,7 @@ def get_valence(playlist_link):
     Return a list of "valence" values for each track in a user's playlust
 
     Valence refer to a measure from 0.0 to 1.0 describing
-    the musical positiveness conveyed by a track.
-    Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric),
-    while tracks with low valence sound more negative(e.g. sad, depressed, angry)
-
-    Args:
-        playlist_link: A string representing the URL of a user's playlist
+    the musical positiveness conveyed by a trac.itemse URL of a user's playlist
 
     Returns:
         A list of integers representing all the valence values from a user's playlist
@@ -116,9 +111,9 @@ def culmative_valence():
 
     for year, playlists in spreadsheet_data.items():
         playlists = [average_valence(link) for link in playlists]
-        spreadsheet_data[year] = numpy.round(sum(playlists), decimals=2)
+        spreadsheet_data[year] = numpy.round(numpy.mean(playlists), decimals=2)
 
-    return print(spreadsheet_data)
+    return spreadsheet_data
 
 
 def how_happy_is(playlist_link):

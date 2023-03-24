@@ -42,11 +42,11 @@ def get_track_id(playlist_link):
         playlist_link: A string representing the URL of a user's playlist
 
     Returns:
-        A list representing all the track IDs of a user's playlist
+        A list representing the track IDs of a user's playlist
     """
     track_uri = playlist_uri(playlist_link)
     track_id = [x["track"]["id"] for x in sp.playlist_tracks(track_uri)["items"]]
-    return track_id
+    return track_id[0:20]
 
 
 def get_username(playlist_link):
@@ -118,17 +118,18 @@ def culmative_valence():
 
 def how_happy_is(playlist_link):
     """
-    Return a message telling how happy a user was that year
-    based on a user's Spotify Wrapped playlist
+        Return a message telling how happy a user was that year
+        based on a user's Spotify Wrapped playlist
 
-    This function is for users who individually requested their
-    playlist results to be reported back
+        This function is for users who individually requested their
+        playlist results to be reported back
 
-    Args:
-        playlist_link: A string representing the URL of a user's playlist
+        Args:
+            playlist_link: A string representing the URL of a user's playlist
 
-    Returns:
-        A string that is a message of how happy a user was
+        Returns:
+            A string that def url_verification(playlist_link):
+    is a message of how happy a user was
     """
     happiness_meter = numpy.round(average_valence(playlist_link), decimals=2)
     name = get_username(playlist_link)

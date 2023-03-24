@@ -63,7 +63,11 @@ def googlesheet():
         # Categorize the playlists into their specific years into a library
         shelf = {"2019": [], "2020": [], "2021": [], "2022": []}
         for play in result["values"]:
+            fill = (4 - len(play)) * [""]
+            if len(play) < 4:
+                play.extend(fill)
             if len(play) > 1:
+                print(play)
                 shelf["2019"].append(play[0])
                 shelf["2020"].append(play[1])
                 shelf["2021"].append(play[2])
@@ -74,7 +78,7 @@ def googlesheet():
             link = [full for full in link if full != ""]
             shelf[year] = link
 
-        return shelf
+        return print(shelf)
 
     except HttpError as err:
         print(err)

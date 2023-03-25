@@ -6,8 +6,7 @@ import spotipy
 import validators
 import google_spreadsheet
 import spotify_key
-
-TEST_URL = "https://open.spotify.com/playlist/1XbedDdXpoV8Q0YUQpoyDQ"
+import requests
 
 client_credentials_manager = spotipy.SpotifyClientCredentials(
     client_id=spotify_key.SPOTIPY_CLIENT_ID,
@@ -26,12 +25,8 @@ def playlist_uri(playlist_link):
     Returns:
         A string representing the URI of a user's playlist
     """
-    try:
-        if validators.url(playlist_link):
-            uri = playlist_link.split("/")[-1].split("?")[0]
-            return uri
-    except spotipy.exceptions.SpotifyException:
-        return print("Please enter a valid link. Try again")
+    uri = playlist_link.split("/")[-1].split("?")[0]
+    return uri
 
 
 def get_track_id(playlist_link):
@@ -46,7 +41,7 @@ def get_track_id(playlist_link):
     """
     track_uri = playlist_uri(playlist_link)
     track_id = [x["track"]["id"] for x in sp.playlist_tracks(track_uri)["items"]]
-    return track_id[0:20]
+    return track_id  # [0:20]
 
 
 def get_username(playlist_link):
@@ -67,7 +62,7 @@ def get_username(playlist_link):
 
 def get_valence(playlist_link):
     """
-    Return a list of "valence" values for each track in a user's playlust
+    Return a list of "valence" values for each track in a user's playlist
 
     Valence refer to a measure from 0.0 to 1.0 describing
     the musical positiveness conveyed by a trac.itemse URL of a user's playlist
@@ -139,4 +134,9 @@ def how_happy_is(playlist_link):
     )
 
 
-culmative_valence()
+how_happy_is(
+    "https://open.spotify.com/playlist/6zyoSfkTnognmPUWfMjDCM?si=b09349f4b5b64ff6"
+)
+
+# if __name__ == "__main__":
+#     culmative_valence()

@@ -4,6 +4,8 @@ Exporting Spotify Playlist Links from Survey Results
 from __future__ import print_function
 
 import os.path
+import requests
+import validators
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -16,6 +18,21 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = "1aGhKcdd-hFxZggOMNydM2ElF2gU0IO6JkkWo3SN6RZA"
 RANGE_NAME = "C2:F"
+
+
+def link_testing(link):
+    """
+    add stuff later!
+    """
+    if not validators.url(link):
+        return False
+    r = requests.get(link, timeout=10)
+    if r.status_code != 200:
+        return False
+    if "open.spotify.com" not in link:
+        return False
+    else:
+        return True
 
 
 def googlesheet():
@@ -67,15 +84,17 @@ def googlesheet():
             if len(play) < 4:
                 play.extend(fill)
             if len(play) > 1:
-                print(play)
                 shelf["2019"].append(play[0])
                 shelf["2020"].append(play[1])
                 shelf["2021"].append(play[2])
                 shelf["2022"].append(play[3])
-
         # Get rid of empty response for specific year
         for year, link in shelf.items():
             link = [full for full in link if full != ""]
+            shelf[year] = link
+        # Get rid of invalid links using the link testing function defined above
+        for year, link in shelf.items():
+            link = [item for item in link if link_testing(item) == True]
             shelf[year] = link
 
         return print(shelf)

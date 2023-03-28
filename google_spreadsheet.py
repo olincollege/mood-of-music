@@ -17,43 +17,46 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = "1aGhKcdd-hFxZggOMNydM2ElF2gU0IO6JkkWo3SN6RZA"
-RANGE_NAME = "C2:F"
+RANGE_YEAR = "C2:F"
+RANGE_EMAIL = "B2:G"
 
 
-def link_testing(link):
+def link_testing(playlist_link):
     """
-    add stuff later!
-    """
-    if not validators.url(link):
-        return False
-    r = requests.get(link, timeout=10)
-    if r.status_code != 200:
-        return False
-    if "open.spotify.com" not in link:
-        return False
-    else:
-        return True
-
-
-def googlesheet():
-    """
-    Return a dictionary of Spotify Playlist links according to the specifc year
-    the playlist was made
+    Filter through invalid, non-Spotify, or private playlist links.
 
     Args:
-        Any parameter
+        playlist_link: A string representing the playlist link.
 
     Returns:
-        A dictionary with years(2019,2020,2021,2022) as keys
-        and playlist links as values
+        A boolean value of whether the link is valid or not.
+    """
+    if not validators.url(playlist_link):
+        return False
+    link = requests.get(playlist_link, timeout=10)
+    if link.status_code != 200:
+        return False
+    if "open.spotify.com" not in playlist_link:
+        return False
 
+    return True
+
+
+def googlesheet_authenticate():
+    """
+    Authenticate Google Account with Google Sheets API token
+    and creates a token file if none exists.
+
+    Returns:
+        A Resource object for interacting with the Google Sheets API.
     """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if os.path.exists("token_spreadsheet.json"):
+        creds = Credentials.from_authorized_user_file("token_spreadsheet.json", SCOPES)
+        return creds
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -65,16 +68,57 @@ def googlesheet():
             )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open("token.json", "w", encoding="utf-8") as token:
+        with open("token_spreadsheet.json", "w", encoding="utf-8") as token:
             token.write(creds.to_json())
+        return creds
 
+
+def googlesheet_email():
+    """
+    Return a dictionary of survey response emails and their playlist links
+
+    Returns:
+        A dicitionary with user email as keys and playlist links as values
+    """
+    creds = googlesheet_authenticate()
+    try:
+        service = build("sheets", "v4", credentials=creds)
+
+        # Call the Sheets API
+        sheet = service.spreadsheets()
+        results = (
+            sheet.values()
+            .get(spreadsheetId=SPREADSHEET_ID, range=RANGE_EMAIL)
+            .execute()
+        )
+
+        return results["values"]
+
+    except HttpError as err:
+        return print(err)
+
+
+googlesheet_email()
+
+
+def googlesheet_by_year():
+    """
+    Return a dictionary of Spotify Playlist links according to the specifc year
+    the playlist was made
+
+    Returns:
+        A dictionary with years(2019,2020,2021,2022) as keys
+        and playlist links as values
+
+    """
+    creds = googlesheet_authenticate()
     try:
         service = build("sheets", "v4", credentials=creds)
 
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = (
-            sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
+            sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_YEAR).execute()
         )
 
         # Categorize the playlists into their specific years into a library
@@ -94,14 +138,11 @@ def googlesheet():
             shelf[year] = link
         # Get rid of invalid links using the link testing function defined above
         for year, link in shelf.items():
-            link = [item for item in link if link_testing(item) == True]
+            link = [item for item in link if link_testing(item) is True]
             shelf[year] = link
 
-        return print(shelf)
+        return shelf
 
     except HttpError as err:
-        print(err)
-
-
-if __name__ == "__main__":
-    googlesheet()
+        return print(err)
+        exit()

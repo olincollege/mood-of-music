@@ -3,10 +3,8 @@ Functions to determine the overall "mood" of a user's Spotify Wrapped playlist
 """
 import numpy
 import spotipy
-import validators
 import google_spreadsheet
 import spotify_key
-import requests
 
 client_credentials_manager = spotipy.SpotifyClientCredentials(
     client_id=spotify_key.SPOTIPY_CLIENT_ID,
@@ -41,7 +39,7 @@ def get_track_id(playlist_link):
     """
     track_uri = playlist_uri(playlist_link)
     track_id = [x["track"]["id"] for x in sp.playlist_tracks(track_uri)["items"]]
-    return track_id  # [0:20]
+    return track_id[0:20]
 
 
 def get_username(playlist_link):
@@ -91,8 +89,10 @@ def average_valence(playlist_link):
     Returns:
         An integer representing the average valence of a playlist
     """
+    if playlist_link == "":
+        return "'No Playlist Submitted'"
     all_valence = get_valence(playlist_link)
-    return numpy.mean(all_valence)
+    return numpy.round(numpy.mean(all_valence), decimals=2)
 
 
 def culmative_valence():
@@ -103,12 +103,11 @@ def culmative_valence():
         A dictionary for each of the culmative valences from the Year 2019 to 2022
     """
     spreadsheet_data = google_spreadsheet.googlesheet()
-
     for year, playlists in spreadsheet_data.items():
         playlists = [average_valence(link) for link in playlists]
-        spreadsheet_data[year] = numpy.round(numpy.mean(playlists), decimals=2)
+        spreadsheet_data[year] = playlists
 
-    return spreadsheet_data
+    return print(spreadsheet_data)
 
 
 def how_happy_is(playlist_link):
@@ -134,9 +133,5 @@ def how_happy_is(playlist_link):
     )
 
 
-how_happy_is(
-    "https://open.spotify.com/playlist/6zyoSfkTnognmPUWfMjDCM?si=b09349f4b5b64ff6"
-)
-
-# if __name__ == "__main__":
-#     culmative_valence()
+if __name__ == "__main__":
+    culmative_valence()

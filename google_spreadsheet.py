@@ -98,9 +98,6 @@ def googlesheet_email():
         return print(err)
 
 
-googlesheet_email()
-
-
 def googlesheet_by_year():
     """
     Return a dictionary of Spotify Playlist links according to the specifc year

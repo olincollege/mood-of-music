@@ -67,3 +67,12 @@ def test_average_valence_empty():
     url = ""
     expected = "'No Playlist Submitted'"
     assert average_valence(url) == expected
+
+
+def test_average_valence_invalid():
+    """
+    Check if error message is displayed with invalid playlist link
+    """
+    url = "https://open.spotify.com/playlist/37i9dQZF1EUMDoJuT8yJsl?si=164c2f9bd9674fe3"
+    expected = "'No Playlist Submitted'"
+    assert average_valence(url) == expected

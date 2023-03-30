@@ -17,19 +17,19 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = "1aGhKcdd-hFxZggOMNydM2ElF2gU0IO6JkkWo3SN6RZA"
+RANGE_ALL = "B2:G"
 RANGE_YEAR = "C2:F"
-RANGE_EMAIL = "B2:G"
 
 
 def link_testing(playlist_link):
     """
-    Filter through invalid, non-Spotify, or private playlist links.
+    Filter through invalid, non-Spotify, or private playlist links
 
     Args:
-        playlist_link: A string representing the playlist link.
+        playlist_link: A string representing the playlist link
 
     Returns:
-        A boolean value of whether the link is valid or not.
+        A boolean value of whether the link is valid or not
     """
     if not validators.url(playlist_link):
         return False
@@ -45,10 +45,10 @@ def link_testing(playlist_link):
 def googlesheet_authenticate():
     """
     Authenticate Google Account with Google Sheets API token
-    and creates a token file if none exists.
+    and creates a token file if none exists
 
     Returns:
-        A Resource object for interacting with the Google Sheets API.
+        A Resource object for interacting with the Google Sheets API
     """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -63,7 +63,8 @@ def googlesheet_authenticate():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                "client_secret_899143637035-ehhtn86j8tcglm9uhne3n3vc0d0kevbm.apps.googleusercontent.com.json",
+                "client_secret_899143637035-ehhtn86j8tcglm9uhne3n3vc0d0kevbm."
+                "apps.googleusercontent.com.json",
                 SCOPES,
             )
             creds = flow.run_local_server(port=0)
@@ -73,39 +74,16 @@ def googlesheet_authenticate():
         return creds
 
 
-def googlesheet_email():
+def googlesheet_data(input_range):
     """
-    Return a dictionary of survey response emails and their playlist links
+    Return the Google Spreadsheet data for the input range
 
+    Args:
+        input_range: A string of format "_:_" representing the
+        requested data range of the spreadsheet
     Returns:
-        A dicitionary with user email as keys and playlist links as values
-    """
-    creds = googlesheet_authenticate()
-    try:
-        service = build("sheets", "v4", credentials=creds)
-
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        results = (
-            sheet.values()
-            .get(spreadsheetId=SPREADSHEET_ID, range=RANGE_EMAIL)
-            .execute()
-        )
-
-        return results["values"]
-
-    except HttpError as err:
-        return print(err)
-
-
-def googlesheet_by_year():
-    """
-    Return a dictionary of Spotify Playlist links according to the specifc year
-    the playlist was made
-
-    Returns:
-        A dictionary with years(2019,2020,2021,2022) as keys
-        and playlist links as values
+        A list of lists containing the Google Spreadsheet data
+        for the requested range
 
     """
     creds = googlesheet_authenticate()
@@ -115,12 +93,58 @@ def googlesheet_by_year():
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = (
-            sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_YEAR).execute()
+            sheet.values()
+            .get(spreadsheetId=SPREADSHEET_ID, range=input_range)
+            .execute()
         )
+        return result["values"]
+    except HttpError as err:
+        return print(err)
+
+
+def googlesheet_difference():
+    """
+    Return a list containing lists of playlist links
+
+    Empty/invalid responses are filtered
+
+    Only submission of four links are preserved
+
+    Returns:
+        A list containing lists of filtered playlist links
+
+    """
+    try:
+        # Call the Sheets API
+        result = googlesheet_data(RANGE_YEAR)
+        setup = []
+        # Gets rid of empty/invalid responses or submission of only one playlist
+        for play in result:
+            play = [link for link in play if link != "" and link_testing(link) is True]
+            if len(play) == 4:
+                setup.append(play)
+        return setup
+    except HttpError as err:
+        return print(err)
+
+
+def googlesheet_by_year():
+    """
+    Return a dictionary of Spotify Playlist links according to the specific year
+    the playlist was made
+
+    Returns:
+        A dictionary with years(2019,2020,2021,2022) as keys
+        and playlist links as values
+
+    """
+    try:
+        # Call the Sheets API
+        result = googlesheet_data(RANGE_YEAR)
 
         # Categorize the playlists into their specific years into a library
         shelf = {"2019": [], "2020": [], "2021": [], "2022": []}
-        for play in result["values"]:
+        for play in result:
             fill = (4 - len(play)) * [""]
             if len(play) < 4:
                 play.extend(fill)
@@ -142,4 +166,3 @@ def googlesheet_by_year():
 
     except HttpError as err:
         return print(err)
-        exit()

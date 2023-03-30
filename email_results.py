@@ -4,26 +4,25 @@ Function for sending emails about Playlist results.
 from __future__ import print_function
 import os
 import base64
-import numpy
-
 from email.mime.text import MIMEText
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from requests import HTTPError
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google_spreadsheet import googlesheet_email
+from google_spreadsheet import googlesheet_data
 from main import average_valence
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+RANGE_ALL = "B2:G"
 
 
 def gmail_authenticate():
     """
-    Authenticate Google Account with Gmail API token and creates a token file if none exists.
+    Authenticate Google Account with Gmail API token and creates a token file if none exists
 
     Returns:
-        A Resource object for interacting with the Gmail API.
+        A Resource object for interacting with the Gmail API
 
     """
     creds = None
@@ -38,7 +37,8 @@ def gmail_authenticate():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                "client_secret_899143637035-ehhtn86j8tcglm9uhne3n3vc0d0kevbm.apps.googleusercontent.com.json",
+                "client_secret_899143637035-ehhtn86j8tcglm9uhne3n3vc0d0kevbm."
+                "apps.googleusercontent.com.json",
                 SCOPES,
             )
             creds = flow.run_local_server(port=0)
@@ -50,13 +50,13 @@ def gmail_authenticate():
 
 def generate_email_list():
     """
-    Filter out responses that did not submit an email.
+    Filter out responses that did not submit an email
 
     Returns:
-        A list of lists with links and email addresses.
+        A list of lists with links and email addresses
     """
     email_list = []
-    emails = googlesheet_email()
+    emails = googlesheet_data(RANGE_ALL)
     for email in emails:
         if len(email) > 1 and len(email) == 6:
             email_list.append(email)
@@ -65,7 +65,7 @@ def generate_email_list():
 
 def gmail_write():
     """
-    Use Gmail API to send a email with the Playlist Mood Analysis results.
+    Use Gmail API to send a email with the Playlist Mood Analysis results
     """
     service = gmail_authenticate()
     email_list = generate_email_list()
@@ -84,11 +84,11 @@ def gmail_write():
                 "\n"
                 "\n"
                 "We are the YourMoodOfMusic SoftDes Team, and you are "
-                "recieving this email because you responded back to our survey."
+                "receiving this email because you responded back to our survey."
                 "\n"
                 "\n"
                 "Our project aimed to determine how happy a person was"
-                "in a specifc year based on their Spotify Wrapped."
+                "in a specific year based on their Spotify Wrapped."
                 "\n"
                 "\n"
                 "We used 'valence' values,provided by Spotify, to calculate the average 'happiness "

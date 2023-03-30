@@ -106,16 +106,21 @@ def average_valence(playlist_link):
 
 def overall_valence():
     """
-    Return the overall average valence for the year of the playlists
+    Return the all and the overall average valence for the year of the playlists
 
     Returns:
-        A dictionary for each of the overall average valences from the Year 2019 to 2022
+        A dictionary for all of the average valences for each year
+        A dictionary for each of the overall average valences
+        from the Year 2019 to 2022
     """
-    spreadsheet_data = google_spreadsheet.googlesheet_by_year()
-    for year, playlists in spreadsheet_data.items():
+    spreadsheet_data_all = google_spreadsheet.googlesheet_by_year()
+    for year, playlists in spreadsheet_data_all.items():
         playlists = [average_valence(link) for link in playlists]
-        spreadsheet_data[year] = numpy.round(numpy.mean(playlists), decimals=2)
-    return spreadsheet_data
+        spreadsheet_data_all[year] = playlists
+    spreadsheet_average = {"2019": 0, "2020": 0, "2021": 0, "2022": 0}
+    for year, averages in spreadsheet_data_all.items():
+        spreadsheet_average[year] += numpy.round(numpy.mean(averages), decimals=2)
+    return spreadsheet_data_all, spreadsheet_average
 
 
 def valence_change():
@@ -158,8 +163,3 @@ def how_happy_is(playlist_link):
     return print(
         f"{name} was about {happiness_meter} happy out of 1 in the Year {year}!"
     )
-
-
-if __name__ == "__main__":
-    overall_valence()
-    valence_change()

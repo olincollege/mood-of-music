@@ -37,8 +37,7 @@ def gmail_authenticate():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                "client_secret_899143637035-ehhtn86j8tcglm9uhne3n3vc0d0kevbm."
-                "apps.googleusercontent.com.json",
+                "google_token.json",
                 SCOPES,
             )
             creds = flow.run_local_server(port=0)
